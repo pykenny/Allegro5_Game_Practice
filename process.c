@@ -324,5 +324,6 @@ static int gameplay_pause(r_srpack *r) {
 static int gameplay_finish(r_srpack *r) {
     /* Release resource */
     destroy_gameplay_resr(r->inter_rsr);
-    return 0;
+    r->inter_rsr = NULL;
+    return P_G_FCODE_REXIT;
 }

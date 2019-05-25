@@ -68,10 +68,13 @@ enum P_GAMEPLAY_ERRCODE {
     P_GCODE_ERR = 1
 };
 
-/* Inner state of process->gameplay->pause routine*/
-enum P_G_PAUSE_STATE {     /* Ref: P_GAMEPLAY_STATE */
-    P_PSTATE_FINISH =  1,
-    P_PSTATE_PLAYING = 3
+enum P_G_PAUSE_RETCODE {     /* Ref: P_GAMEPLAY_STATE */
+    P_G_PCODE_RFINISH =  1,
+    P_G_PCODE_RPLAYING = 3
+};
+
+enum P_G_FINISH_RETCODE {  /* Ref: P_GAMEPLAY_STATE */
+    P_G_FCODE_REXIT = 0
 };
 
 #endif

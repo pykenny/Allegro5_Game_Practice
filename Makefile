@@ -4,7 +4,7 @@ LIBS=`pkg-config --cflags --libs allegro-5 allegro_main-5 allegro_image-5 allegr
 
 ODIR=./
 IDIR=./
-_OBJ = main.c process.c resource.c control.c errcode.c
+_OBJ = main.c process.o resource.o control.o errcode.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 _DEPS = process.h control.h errcode.h resource.h statecodes.h process.h routine_info.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
