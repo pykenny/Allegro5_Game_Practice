@@ -57,15 +57,15 @@ const unsigned int FRAME_ATTACK_PERIOD = 30; // How many frames should pass befo
 const unsigned int NUMBER_RESOURCE_IMAGE = 4;
 const unsigned int NUMBER_RESOURCE_SOUND = 2;
 const char *IMAGE_RESOURCE_PATH[] = {
-        "resource/img/pilot.png",
-        "resource/img/enemy.png",
-        "resource/img/attack.png",
-        "resource/img/shoot.png"
+        "src/resource/img/pilot.png",
+        "src/resource/img/enemy.png",
+        "src/resource/img/attack.png",
+        "src/resource/img/shoot.png"
 };
 
 const char *SOUND_RESOURCE_PATH[] = {
-        "resource/sfx/Explosion.wav",
-        "resource/sfx/Laser_Shoot.wav"
+        "src/resource/sfx/Explosion.wav",
+        "src/resource/sfx/Laser_Shoot.wav"
 };
 
 /* Game Engine/Routines */

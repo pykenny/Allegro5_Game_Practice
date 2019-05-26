@@ -11,5 +11,10 @@ implement main0() =
 
 
 %{
-#include "process.h"
+/* Note:
+ * The generated C code is by default stored in the directory where compiling
+ * command is run. From README's instruction this loaction should be project
+ * root directory.
+ */
+#include "src/headers/process.h"
 %}

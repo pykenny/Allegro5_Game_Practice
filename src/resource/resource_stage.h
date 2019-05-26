@@ -10,8 +10,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
-#include "./../general_settings.h"
-#include "./../errcode.h"
+#include "./../headers/general_settings.h"
+#include "./../headers/errcode.h"
 
 /* *** Old stage object *** */
 /* Game difficulty */

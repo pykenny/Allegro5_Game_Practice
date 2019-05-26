@@ -11,7 +11,7 @@
 #include "control.h"
 
 /* *** Include routine resource headers *** */
-#include "resource/resource_stage.h"
+#include "../resource/resource_stage.h"
 /* *** End of resource header inclusion *** */
 
 

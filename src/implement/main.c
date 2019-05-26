@@ -1,4 +1,4 @@
-#include "process.h"
+#include "./../headers/process.h"
 
 /*  // Old version
 int main(int argc, char **argv) {

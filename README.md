@@ -24,6 +24,9 @@ Right now we have a space-evader-like game that allows you to move you ship and 
 Once we've done with compiling C version, object files generated (unless you run `make clean` to remove all object files) can be used for compiling the version written in ATS2. Right now it's just calling the main routine under ATS2's `main0` function. You can run this command to generate a file named `play_ats.exe`, which is essentially the same as `./play.exe` generated from make utility:
 
 ```shell
-patscc -cleanaft main.dats *.o ./resource/*.o `pkg-config --cflags --libs allegro-5 allegro_main-5 allegro_image-5 allegro_font-5 allegro_ttf-5 allegro_audio-5 allegro_acodec-5` -o play_ats.exe
+patscc -cleanaft ./ats2_draft/main.dats ./bin/*.o ./bin/resource/*.o      \
+  `pkg-config --cflags --libs                                             \
+    allegro-5 allegro_main-5 allegro_image-5 allegro_font-5 allegro_ttf-5 \
+    allegro_audio-5 allegro_acodec-5` -o play_ats.exe
 ```
 
