@@ -11,6 +11,7 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 #include "./../general_settings.h"
+#include "./../errcode.h"
 
 /* *** Old stage object *** */
 /* Game difficulty */
@@ -208,11 +209,11 @@ void draw_screen(stage *s);
 void handle_enemy_shoot_collisions(enemy **e, shoot **sl, stage *sg);
 
 /* Stage */
-stage *create_stage();
+stage *create_stage(int *err);
 void free_stage(stage *s);
 
 /* Resouce */
-resource *create_resource();
+resource *create_resource(int *err);
 void free_resource(resource *r);
 
 /* Enemies */
@@ -267,7 +268,7 @@ typedef struct resource_gameplay_str {
     stage *sg;
 } gameplay_resr;
 
-gameplay_resr *create_gameplay_resr();
+gameplay_resr *create_gameplay_resr(int *err);
 void destroy_gameplay_resr(gameplay_resr *p);
 
 

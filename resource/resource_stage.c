@@ -136,18 +136,20 @@ void reset_enemy(enemy *e, unsigned int x, unsigned int y, unsigned int d){
 
 void free_enemies(enemy **e_arr) {
     int i = 0;
-    if (e_arr != NULL) {
+    if (e_arr) {
         for (i = 0; i < ENEMY_NUMBER; i++) {
             free_enemy(e_arr[i]);
         }
         free(e_arr);
     }
+    return;
 }
 
 void free_enemy(enemy *e) {
-    if (e != NULL) {
+    if (e) {
         free(e);
     }
+    return;
 }
 
 void draw_enemies(enemy **es, stage *s) {
@@ -248,7 +250,7 @@ shoot *create_shoot() {
 
 void free_shoots(shoot **sl) {
     int i;
-    if(sl != NULL) {
+    if(sl) {
         for (i = 0; i < NUMBER_SHOOT; i++) {
             free_shoot(sl[i]);
         }
@@ -256,7 +258,10 @@ void free_shoots(shoot **sl) {
     }
 }
 void free_shoot(shoot *s) {
-    free(s);
+    if (s) {
+        free(s);
+    }
+    return;
 }
 
 void draw_shoots(shoot **sl, stage *sg) {
@@ -335,7 +340,7 @@ attack *create_attack(){
 
 void free_attacks(attack **al) {
     int i;
-    if(al != NULL) {
+    if(al) {
         for (i = 0; i < NUMBER_ATTACK; i++) {
             free_attack(al[i]);
         }
@@ -344,7 +349,10 @@ void free_attacks(attack **al) {
 }
 
 void free_attack(attack *a) {
-    free(a);
+    if (a) {
+        free(a);
+    }
+    return;
 }
 
 void draw_attacks(attack **al, stage *s) {
@@ -467,7 +475,10 @@ player *create_player() {
 }
 
 void free_player(player *p) {
-    free(p);
+    if (p) {
+        free(p);
+    }
+    return;
 }
 
 void draw_player(player *p, stage *s) {
@@ -521,8 +532,10 @@ void move_player(player *p, stage *s) {
 }
 
 /* Stage */
-stage *create_stage() {
-    stage *sg = malloc(sizeof(stage));
+stage *create_stage(int *err) {
+    int errcode = 0;
+
+    stage *sg = calloc(1, sizeof(stage));
     sg->game_status = GAME_STATUS_PLAYING;
     sg->score = 0;
     sg->difficulty = 0;
@@ -532,7 +545,7 @@ stage *create_stage() {
     srand((unsigned int)sg->random_seed);
 
     sg->game_player = create_player();
-    sg->game_resource = create_resource();
+    sg->game_resource = create_resource(&errcode);
     sg->list_enemy = create_enemies(sg);
     sg->list_shoot = create_shoots();
     sg->list_attack = create_attacks();
@@ -541,58 +554,100 @@ stage *create_stage() {
     sg->key_operation[KEY_OPERATION_ID_SHOOT] = KEY_OPERATION_STATUS_RELEASE;
     sg->attack_counter = FRAME_ATTACK_PERIOD;
 
+    if (errcode) {
+        *err = errcode;
+        free_stage(sg);
+        sg = NULL;
+    }
+
     return sg;
 }
 
 void free_stage(stage *s) {
-    if(s != NULL) {
+    if(s) {
         free_player(s->game_player);
         free_resource(s->game_resource);
         free_enemies(s->list_enemy);
         free_shoots(s->list_shoot);
         free_attacks(s->list_attack);
         free(s);
+        s = NULL;
     }
+    return;
 }
 
 /* Game Resource */
-resource *create_resource() {
+resource *create_resource(int *err) {
     int i;
+    int errcode = 0;
 
     /* Locate to executable's directory (project root) */
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
     chdir(al_path_cstr(path, '/'));
     al_destroy_path(path);
 
-    resource *r = malloc(sizeof(resource));
-    r->resource_images = malloc(sizeof(ALLEGRO_BITMAP*) * NUMBER_RESOURCE_IMAGE);
-    r->resource_sounds = malloc(sizeof(ALLEGRO_SAMPLE*) * NUMBER_RESOURCE_SOUND);
+    resource *r = calloc(1, sizeof(resource));
+    r->resource_images = calloc(NUMBER_RESOURCE_IMAGE, sizeof(ALLEGRO_BITMAP*));
+    r->resource_sounds = calloc(NUMBER_RESOURCE_SOUND, sizeof(ALLEGRO_SAMPLE*));
+
     for (i = 0; i < NUMBER_RESOURCE_IMAGE; i++) {
         r->resource_images[i] = al_load_bitmap(IMAGE_RESOURCE_PATH[i]);
         if(r->resource_images[i] == NULL) {
-            printf("Hey can't load file!\n");
+            printf("Can't load file!\n");
+            errcode = R_INFO_MSG_ERR_IMGLD;
+            break;
         }
     }
-    for (i = 0; i < NUMBER_RESOURCE_SOUND; i++) {
-        r->resource_sounds[i] = al_load_sample(SOUND_RESOURCE_PATH[i]);
-        if(r->resource_sounds[i] == NULL) {
-            printf("Hey can't load sound file!\n");
+    if (!errcode) {
+        for (i = 0; i < NUMBER_RESOURCE_SOUND; i++) {
+            r->resource_sounds[i] = al_load_sample(SOUND_RESOURCE_PATH[i]);
+            if(r->resource_sounds[i] == NULL) {
+                printf("Can't load sound file!\n");
+                errcode = R_INFO_MSG_ERR_AUDLD;
+                break;
+            }
         }
+    }
+    
+    if (errcode) {
+        free_resource(r);
+        r = NULL;
+        *err = errcode;
     }
     return r;
 }
 
 void free_resource(resource *r) {
     int i;
-    for (i = 0; i < NUMBER_RESOURCE_IMAGE; i++) {
-        al_destroy_bitmap(r->resource_images[i]);
+
+    if (!r) {
+        return;
     }
-    for (i = 0; i < NUMBER_RESOURCE_SOUND; i++) {
-        al_destroy_sample(r->resource_sounds[i]);
+
+    if (r->resource_images) {
+        for (i = 0; i < NUMBER_RESOURCE_IMAGE; i++) {
+            if (r->resource_images[i]) {
+                al_destroy_bitmap(r->resource_images[i]);
+                r->resource_images[i] = NULL;
+            }
+        }
+        free(r->resource_images);
+        r->resource_images = NULL;
     }
-    free(r->resource_images);
-    free(r->resource_sounds);
+    
+    if (r->resource_sounds) {
+        for (i = 0; i < NUMBER_RESOURCE_SOUND; i++) {
+            if (r->resource_sounds[i]) {
+                al_destroy_sample(r->resource_sounds[i]);
+                r->resource_sounds[i] = NULL;
+            }
+        }
+        free(r->resource_sounds);
+        r->resource_sounds = NULL;
+    }
     free(r);
+    r = NULL;
+    return;
 }
 
 /* Engine 
@@ -771,10 +826,19 @@ void handle_enemy_shoot_collisions(enemy **e, shoot **sl, stage *sg) {
     return;
 }
 
-gameplay_resr *create_gameplay_resr() {
+gameplay_resr *create_gameplay_resr(int *err) {
+    int errcode = 0;
+
     gameplay_resr* ptr = calloc(1, sizeof(gameplay_resr));
     // gameplay_resr *gpres_ptr = &(gres_ptr->gameplay_resr);
-    ptr->sg = create_stage();
+    ptr->sg = create_stage(&errcode);
+
+    if (errcode) {
+        *err = errcode;
+        destroy_gameplay_resr(ptr);
+        ptr = NULL;
+    }
+
     return ptr;
 }
 

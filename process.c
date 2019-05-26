@@ -5,20 +5,20 @@
  * in order to visualize relationship
  */
 
-/* TOP PROCESS */
+/* MAIN PROCESS */
 static int proc_init(r_srpack *r);
 static int proc_menu(r_srpack *r);
 /*  |_  MENU ROUTINE */
     static int menu_init(r_srpack *i_p, r_srpack *i);
     static int menu_opt_start(r_srpack *i);
     static int menu_opt_exit(r_srpack *i);
-    static int menu_finish(r_srpack *i);
+    static int menu_finish(r_srpack *i_p, r_srpack *i);
 static int proc_gameplay(r_srpack *r);
 /*  |_  GAMEPLAY ROUTINE */
     static int gameplay_init(r_srpack *i_p, r_srpack *i);
     static int gameplay_playing(r_srpack *r);
     static int gameplay_pause(r_srpack *r);
-    static int gameplay_finish(r_srpack *r);
+    static int gameplay_finish(r_srpack *r_p, r_srpack *r);
 static int proc_finish(r_srpack *r);
 
 int proc_routine() {
@@ -65,7 +65,7 @@ int proc_routine() {
      * then rspack.info.retcode should be already modified at somewhere else. 
      */
     if (rspack.info.errcode) {
-        rspack.info.retcode = PCODE_RERR;
+        rspack.info.retcode = PCODE_ERR;
         print_routine_errmsg(rspack.info);
     }
     return rspack.info.retcode;
@@ -98,10 +98,10 @@ static int proc_init(r_srpack *r_p) {
         chdir(al_path_cstr(path, '/'));
         al_destroy_path(path);
         
-        return (r_p->info.retcode = PSTATE_MENU);
+        return (r_p->info.retcode = P_ICODE_MENU);
     } while (0);
     /* If any error occurs, cleanup and end the program */
-    return (r_p->info.retcode = PSTATE_FINISH);
+    return (r_p->info.retcode = P_ICODE_FINISH);
 }
 
 static int proc_menu(r_srpack *r_p) {
@@ -121,15 +121,15 @@ static int proc_menu(r_srpack *r_p) {
                 state = menu_opt_exit(&rspack);
                 break;
             case P_MSTATE_FINISH:
-                state = menu_finish(&rspack);
+                state = menu_finish(r_p, &rspack);
                 break;
         }
     }
     if (rspack.info.errcode) {
-        rspack.info.retcode = P_MCODE_RFINISH;
+        rspack.info.retcode = P_MCODE_FINISH;
         print_routine_errmsg(rspack.info);
     } else {
-        rspack.info.retcode = P_MCODE_RGAMEPLAY;
+        rspack.info.retcode = P_MCODE_GAMEPLAY;
     }
     return rspack.info.retcode;
 }
@@ -153,7 +153,7 @@ static int proc_gameplay(r_srpack *r_p) {
                 state = gameplay_pause(&rspack);
                 break;
             case P_GSTATE_FINISH:
-                state = gameplay_finish(&rspack);
+                state = gameplay_finish(r_p, &rspack);
                 break;
         }
     }
@@ -161,19 +161,23 @@ static int proc_gameplay(r_srpack *r_p) {
     /* Note: If non-error result, then retcode should already be modified
      * somewhere else.
      */
-    if (rspack.info.errcode) {
-        rspack.info.retcode = P_GCODE_RFINISH;
-        print_routine_errmsg(rspack.info);
+    if (r_p->info.errcode) {
+        r_p->info.retcode = P_GCODE_FINISH;
+    } else {
+        r_p->info.retcode = P_GCODE_FINISH;
     }
     
-    return rspack.info.retcode;
+    return r_p->info.retcode;
 }
 
 static int proc_finish(r_srpack *r) {
+    /* Note:
+     * (1) There's no internal resource right now.
+     * (2) r_srpack here is statically allocated.
+     */
     destroy_ctrl_handle(r->ctrl);
     al_uninstall_audio();
-    /* TODO: Release internal resource. */
-    return P_GSTATE_EXIT;
+    return P_FCODE_EXIT;
 }
 
 /* TODO:
@@ -181,31 +185,38 @@ static int proc_finish(r_srpack *r) {
  * between for now.
  */
 static int menu_init(r_srpack *pi, r_srpack *i) {
-    return P_MSTATE_FINISH;
+    return P_M_ICODE_FINISH;
 }
 static int menu_opt_start(r_srpack *i) {
-    return P_MSTATE_FINISH;
+    return P_M_OSCODE_FINISH;
 }
 static int menu_opt_exit(r_srpack *i) {
-    return P_MSTATE_FINISH;
+    return P_M_OECODE_FINISH;
 }
-static int menu_finish(r_srpack *i) {
-    i->info.retcode = P_MCODE_RGAMEPLAY;
-    return P_MSTATE_EXIT;
+static int menu_finish(r_srpack *i_p, r_srpack *i) {
+    return P_M_FCODE_EXIT;
 }
 
 static int gameplay_init(r_srpack *r_p, r_srpack *r) {
+    int errcode = 0;
     /* Shift control handle */
     r->ctrl = r_p->ctrl;
     /* Direct shift. But there's nothing in current implementation. */
     r->exter_rsr = r_p->inter_rsr;
     /* INITIALIZE INTERNAL RESOURCE */
-    r->inter_rsr = GRESR_PTR_CAST(create_gameplay_resr());
+    r->inter_rsr = GRESR_PTR_CAST(create_gameplay_resr(&errcode));
     /* INITIALIZE PLAYER STATUS */
     /* INITIALIZE STAGE STATUS */
 
     /* If error, return error, else enter "PLAYING" */
-    return P_GSTATE_PLAYING;
+    if (errcode) {
+        SPR_INFO(r_p).errcode = SPR_INFO(r).errcode = errcode;
+        SPR_INFO(r).retcode = P_G_ICODE_FINISH;
+    }
+    else {
+        SPR_INFO(r).retcode = P_G_ICODE_PLAYING;
+    }
+    return SPR_INFO(r).retcode;
 }
 
 static int gameplay_playing(r_srpack *r) {
@@ -220,7 +231,7 @@ static int gameplay_playing(r_srpack *r) {
     while (1) {
         al_wait_for_event(SRP_EQP(r), SRP_EVTADR(r));
         if (SRP_EVT(r).type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-            SPR_INFO(r).retcode = P_GCODE_RFINISH;
+            SPR_INFO(r).retcode = P_G_PLCODE_FINISH;
             break;
         }
         else if (SRP_EVT(r).type == ALLEGRO_EVENT_TIMER) {
@@ -316,14 +327,16 @@ static int gameplay_playing(r_srpack *r) {
             /* Enemy attack generation */
             /* Player shoot generation */
     }
-    return 0;
+    return P_G_PLCODE_FINISH;
 }
 static int gameplay_pause(r_srpack *r) {
-    return 0; /* TODO */
+    return P_G_PSCODE_FINISH;
 }
-static int gameplay_finish(r_srpack *r) {
+static int gameplay_finish(r_srpack *pr, r_srpack *r) {
+    /* Relay error code */
+    pr->info.errcode = r->info.errcode;
     /* Release resource */
     destroy_gameplay_resr(GP_RESR_PTR_CAST(r->inter_rsr));
     r->inter_rsr = NULL;
-    return P_G_FCODE_REXIT;
+    return P_G_FCODE_EXIT;
 }
