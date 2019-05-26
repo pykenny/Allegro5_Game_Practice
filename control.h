@@ -3,12 +3,10 @@
 
 #include <stdlib.h>
 #include <allegro5/allegro.h>
+#include "general_settings.h"
 #include "errcode.h"
 
-#define FPS 60.0
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-
+/* Flags for flush_ctrl_handle()  */
 extern const unsigned int FLUSH_TIMER_EVT;
 extern const unsigned int FLUSH_DISPLAY_EVT;
 extern const unsigned int FLUSH_KEYBOARD_EVT;

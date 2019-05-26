@@ -1,0 +1,8 @@
+#ifndef GENERAL_SETTINGS_H
+#define GENERAL_SETTINGS_H
+
+#define FPS 60.0
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+
+#endif

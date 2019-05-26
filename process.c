@@ -200,7 +200,7 @@ static int gameplay_init(r_srpack *r_p, r_srpack *r) {
     /* Direct shift. But there's nothing in current implementation. */
     r->exter_rsr = r_p->inter_rsr;
     /* INITIALIZE INTERNAL RESOURCE */
-    r->inter_rsr = create_gameplay_resr();
+    r->inter_rsr = GRESR_PTR_CAST(create_gameplay_resr());
     /* INITIALIZE PLAYER STATUS */
     /* INITIALIZE STAGE STATUS */
 
@@ -323,7 +323,7 @@ static int gameplay_pause(r_srpack *r) {
 }
 static int gameplay_finish(r_srpack *r) {
     /* Release resource */
-    destroy_gameplay_resr(r->inter_rsr);
+    destroy_gameplay_resr(GP_RESR_PTR_CAST(r->inter_rsr));
     r->inter_rsr = NULL;
     return P_G_FCODE_REXIT;
 }
