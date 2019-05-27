@@ -3,6 +3,8 @@
 # Allegro5_Game_Practice
 Practice C and how to write a simple game in C + Allegro5.
 
+![Current version's screen shot (20190527)](readme/screenshot.gif)
+
 ## Ideas
 This project is still under early development, so please refer to this [HackMD note](https://hackmd.io/nwfPX-jZT5O-KJozp2durQ) for current thoughts and ideas. Once the draft is complete enough, I'll migrate it to this repo.
 
